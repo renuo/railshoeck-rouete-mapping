@@ -5,13 +5,15 @@ class TestApp < Rails::Application
   config.session_store :cookie_store, key: 'cookie_store_key'
   secrets.secret_token    = 'secret_token'
   secrets.secret_key_base = 'secret_key_base'
-
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger
 
   routes.draw do
-    resources :users, param: :'name/:sneaky', only: :show
+    resources :users, param: :'name/:sneaky', only: :show, format: false
   end
+
+  puts(routes.routes.collect {|r| [r.verb, r.path.spec.to_s] })
+  File.write('./viz.html', Rails.application.routes.router.visualizer)
 end
 
 class UsersController < ActionController::Base
@@ -27,8 +29,7 @@ class BugTest < Minitest::Test
   include Rack::Test::Methods
 
   def test_returns_success
-    puts(app.routes.routes.map { |r| [r.verb, r.path.spec.to_s] })
-    get '/users/1337/Sneaky'
+    get '/users/alice/sneaky'
     puts last_response.body
     assert last_response.ok?
   end
